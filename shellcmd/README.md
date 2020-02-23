@@ -8,44 +8,65 @@ import "github.com/princjef/mageutil/shellcmd"
 
 Package shellcmd provides utilites to define and execute shell commands\.
 
+The core construct for executing commands is the shellcmd\.Command type\, which represents a command string as it would be typed into a terminal\. Command strings follow the same quoting and escaping rules as a typical POSIX shell\, but do not perform shell expansions\.
+
+Once a command has been created\, it can be run using the Run\(\) method\. This will print the command that is being run and will pipe its output to the terminal\.
+
+```
+err := shellcmd.Command(`go test ./...`).Run()
+```
+
+If you need to run multiple commands in sequence\, you can do so with the shellcmd\.RunAll\(\) function\. This will handle capturing errors in previous commands and skipping execution of later commands if they fail\.
+
+```
+err := shellcmd.RunAll(
+	"go test -coverprofile=coverage.out ./...",
+	"go tool cover -html=coverage.out",
+)
+```
+
+Commands can also run in a mode that captures their output rather than piping it to the console\. This is available via the Output\(\) method\.
+
+```
+out, err := shellcmd.Command(`go test ./...`).Output()
+```
+
 ## Index
 
-- [func RunAll(commands ...*Command) error](<#func-runall>)
+- [func RunAll(commands ...Command) error](<#func-runall>)
 - [type Command](<#type-command>)
-  - [func New(cmd string) *Command](<#func-new>)
-  - [func (c *Command) Run() error](<#func-command-run>)
+  - [func (c Command) Output() ([]byte, error)](<#func-command-output>)
+  - [func (c Command) Run() error](<#func-command-run>)
 
 
-## func [RunAll](<https://github.com/princjef/mageutil/blob/master/shellcmd/shellcmd.go#L40>)
+## func [RunAll](<https://github.com/princjef/mageutil/blob/master/shellcmd/shellcmd.go#L44>)
 
 ```go
-func RunAll(commands ...*Command) error
+func RunAll(commands ...Command) error
 ```
 
 RunAll executes all of the provided commands in sequence\, only executing the next command if the previous command succeeded\. If any of the commands fail\, the rest are not executed and the error is returned\.
 
-## type [Command](<https://github.com/princjef/mageutil/blob/master/shellcmd/shellcmd.go#L13-L15>)
+## type [Command](<https://github.com/princjef/mageutil/blob/master/shellcmd/shellcmd.go#L13>)
 
 Command defines a command which can be defined and run with output piped to stdout/stderr\.
 
 ```go
-type Command struct {
-    // contains filtered or unexported fields
-}
+type Command string
 ```
 
-### func [New](<https://github.com/princjef/mageutil/blob/master/shellcmd/shellcmd.go#L18>)
+### func \(Command\) [Output](<https://github.com/princjef/mageutil/blob/master/shellcmd/shellcmd.go#L32>)
 
 ```go
-func New(cmd string) *Command
+func (c Command) Output() ([]byte, error)
 ```
 
-New creates a new command with the provided command string\.
+Output executes the command\, capturing its stdout and stderr into a \[\]byte\, which is returned when the command completes\.
 
-### func \(\*Command\) [Run](<https://github.com/princjef/mageutil/blob/master/shellcmd/shellcmd.go#L24>)
+### func \(Command\) [Run](<https://github.com/princjef/mageutil/blob/master/shellcmd/shellcmd.go#L17>)
 
 ```go
-func (c *Command) Run() error
+func (c Command) Run() error
 ```
 
 Run executes the command\, piping its output to stdout/stderr and reporting any errors surfaced by it\.

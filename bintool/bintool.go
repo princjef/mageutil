@@ -19,6 +19,7 @@ import (
 	"time"
 
 	"github.com/cheggaaa/pb/v3"
+	"github.com/mattn/go-isatty"
 	"github.com/princjef/mageutil/shellcmd"
 )
 
@@ -256,8 +257,8 @@ func downloadAndExtract(command string, url string) (data []byte, err error) {
 		return nil, fmt.Errorf("bintool: received unexpected response when downloading file: %d", res.StatusCode)
 	}
 
-	bar, r := progress(res.Body, res.ContentLength)
-	defer bar.Finish()
+	r, finish := progress(res.Body, res.ContentLength)
+	defer finish()
 
 	switch {
 	case strings.HasSuffix(url, ".tar.gz"):
@@ -275,7 +276,11 @@ func downloadAndExtract(command string, url string) (data []byte, err error) {
 	}
 }
 
-func progress(r io.Reader, size int64) (*pb.ProgressBar, io.Reader) {
+func progress(r io.Reader, size int64) (io.Reader, func()) {
+	if !isatty.IsTerminal(os.Stderr.Fd()) && !isatty.IsCygwinTerminal(os.Stderr.Fd()) {
+		return r, func() {}
+	}
+
 	tmpl := `{{string . "prefix"}}{{counters . }}` +
 		` {{bar . "[" "=" ">" " " "]" }} {{percent . }}` +
 		` {{speed . "%s/s" }}{{string . "suffix"}}`
@@ -286,7 +291,7 @@ func progress(r io.Reader, size int64) (*pb.ProgressBar, io.Reader) {
 		SetMaxWidth(100).
 		Start()
 
-	return bar, bar.NewProxyReader(r)
+	return bar.NewProxyReader(r), func() { bar.Finish() }
 }
 
 func extractTarFile(r io.Reader, filename string) (data []byte, err error) {

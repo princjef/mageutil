@@ -1,5 +1,6 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/princjef/mageutil)](https://goreportcard.com/report/github.com/princjef/mageutil)
 [![GitHub Actions](https://github.com/princjef/mageutil/workflows/Test/badge.svg)](https://github.com/princjef/mageutil/actions?query=workflow%3ATest+branch%3Amaster)
+[![Release](https://img.shields.io/github/release/princjef/mageutil.svg)](https://github.com/princjef/mageutil/releases/latest)
 [![go.dev reference](https://img.shields.io/badge/go.dev-reference-007d9c?logo=go&logoColor=white&style=flat)](https://pkg.go.dev/github.com/princjef/mageutil)
 
 # mageutil

@@ -418,7 +418,8 @@ func (t *BinTool) installGo() error {
 	}
 
 	fmt.Printf("Installing %s\n", t.tmplData.Cmd)
-	if _, err := shellcmd.Command(fmt.Sprintf("GOBIN=%s go install %s@%s", path, t.url, t.tmplData.Version)).Output(); err != nil {
+	goInstall := fmt.Sprintf("GOBIN=%s go install %s@%s", path, t.url, t.tmplData.Version)
+	if _, err := shellcmd.Command(goInstall).Output(); err != nil {
 		return fmt.Errorf("bintool: unable to install executable: %w", err)
 	}
 

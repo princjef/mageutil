@@ -88,6 +88,7 @@ If your archive and/or binary files use different extensions than the default on
 - [type BinTool](<#type-bintool>)
   - [func Must(t *BinTool, err error) *BinTool](<#func-must>)
   - [func New(command, version, url string, opts ...Option) (*BinTool, error)](<#func-new>)
+  - [func NewGo(pkg, version string, opts ...Option) (*BinTool, error)](<#func-newgo>)
   - [func (t *BinTool) Command(args string) shellcmd.Command](<#func-bintool-command>)
   - [func (t *BinTool) Ensure() error](<#func-bintool-ensure>)
   - [func (t *BinTool) Install() error](<#func-bintool-install>)
@@ -99,7 +100,7 @@ If your archive and/or binary files use different extensions than the default on
   - [func WithVersionCmd(cmd string) Option](<#func-withversioncmd>)
 
 
-## type [BinTool](<https://github.com/princjef/mageutil/blob/master/bintool/bintool.go#L33-L38>)
+## type [BinTool](<https://github.com/princjef/mageutil/blob/master/bintool/bintool.go#L33-L39>)
 
 BinTool represents a single binary tool/version combination with the information needed to check and/or install the tool if desired\.
 
@@ -111,7 +112,7 @@ type BinTool struct {
 }
 ```
 
-### func [Must](<https://github.com/princjef/mageutil/blob/master/bintool/bintool.go#L56>)
+### func [Must](<https://github.com/princjef/mageutil/blob/master/bintool/bintool.go#L57>)
 
 ```go
 func Must(t *BinTool, err error) *BinTool
@@ -119,7 +120,7 @@ func Must(t *BinTool, err error) *BinTool
 
 Must provides a utility for asserting that methods returning a BinTool and an error have no error\. If there is an error\, this call will panic\.
 
-### func [New](<https://github.com/princjef/mageutil/blob/master/bintool/bintool.go#L71>)
+### func [New](<https://github.com/princjef/mageutil/blob/master/bintool/bintool.go#L72>)
 
 ```go
 func New(command, version, url string, opts ...Option) (*BinTool, error)
@@ -129,7 +130,15 @@ New initializes a BinTool with the provided command\, version\, and download url
 
 The command\, url\, and version command may all use text templates to define their formats\. If any of these templates fails to compile or evaluate\, this call will return an error\.
 
-### func \(\*BinTool\) [Command](<https://github.com/princjef/mageutil/blob/master/bintool/bintool.go#L181>)
+### func [NewGo](<https://github.com/princjef/mageutil/blob/master/bintool/bintool.go#L79>)
+
+```go
+func NewGo(pkg, version string, opts ...Option) (*BinTool, error)
+```
+
+NewGo initializes a BinTool with the provided go package and version\. Additional options may be provided to configure things such as the version test command and folder containing the binary tool\.
+
+### func \(\*BinTool\) [Command](<https://github.com/princjef/mageutil/blob/master/bintool/bintool.go#L199>)
 
 ```go
 func (t *BinTool) Command(args string) shellcmd.Command
@@ -137,7 +146,7 @@ func (t *BinTool) Command(args string) shellcmd.Command
 
 Command generates a runnable command using this binary tool along with the provided args\.
 
-### func \(\*BinTool\) [Ensure](<https://github.com/princjef/mageutil/blob/master/bintool/bintool.go#L171>)
+### func \(\*BinTool\) [Ensure](<https://github.com/princjef/mageutil/blob/master/bintool/bintool.go#L190>)
 
 ```go
 func (t *BinTool) Ensure() error
@@ -145,7 +154,7 @@ func (t *BinTool) Ensure() error
 
 Ensure checks to see if a valid version of the tool is installed\, and downloads/installs it if it isn't already\.
 
-### func \(\*BinTool\) [Install](<https://github.com/princjef/mageutil/blob/master/bintool/bintool.go#L151>)
+### func \(\*BinTool\) [Install](<https://github.com/princjef/mageutil/blob/master/bintool/bintool.go#L181>)
 
 ```go
 func (t *BinTool) Install() error
@@ -155,7 +164,7 @@ Install unconditionally downloads and installs the tool to the configured folder
 
 If you don't want to download the tool every time\, you may prefer Ensure\(\) instead\.
 
-### func \(\*BinTool\) [IsInstalled](<https://github.com/princjef/mageutil/blob/master/bintool/bintool.go#L120>)
+### func \(\*BinTool\) [IsInstalled](<https://github.com/princjef/mageutil/blob/master/bintool/bintool.go#L138>)
 
 ```go
 func (t *BinTool) IsInstalled() bool
@@ -163,7 +172,7 @@ func (t *BinTool) IsInstalled() bool
 
 IsInstalled checks whether the correct version of the tool is currently installed as defined by the version command\.
 
-## type [Option](<https://github.com/princjef/mageutil/blob/master/bintool/bintool.go#L51>)
+## type [Option](<https://github.com/princjef/mageutil/blob/master/bintool/bintool.go#L52>)
 
 Option configures a BinTool with optional settings
 
@@ -171,7 +180,7 @@ Option configures a BinTool with optional settings
 type Option func(t *BinTool) error
 ```
 
-### func [WithArchiveExt](<https://github.com/princjef/mageutil/blob/master/bintool/bintool.go#L198>)
+### func [WithArchiveExt](<https://github.com/princjef/mageutil/blob/master/bintool/bintool.go#L216>)
 
 ```go
 func WithArchiveExt(ext string) Option
@@ -179,7 +188,7 @@ func WithArchiveExt(ext string) Option
 
 WithArchiveExt defines a custom extension to use when identifying an archive via the ArchiveExt template variable\. The default archive extension is \.tar\.gz except for Windows\, where it is \.zip\.
 
-### func [WithBinExt](<https://github.com/princjef/mageutil/blob/master/bintool/bintool.go#L208>)
+### func [WithBinExt](<https://github.com/princjef/mageutil/blob/master/bintool/bintool.go#L226>)
 
 ```go
 func WithBinExt(ext string) Option
@@ -187,7 +196,7 @@ func WithBinExt(ext string) Option
 
 WithBinExt defines a custom extension to use when identifying a binary executable via the BinExt template variable\. The default binary extension is empty for all operating systems except Windows\, where it is \.exe\.
 
-### func [WithFolder](<https://github.com/princjef/mageutil/blob/master/bintool/bintool.go#L188>)
+### func [WithFolder](<https://github.com/princjef/mageutil/blob/master/bintool/bintool.go#L206>)
 
 ```go
 func WithFolder(folder string) Option
@@ -195,13 +204,13 @@ func WithFolder(folder string) Option
 
 WithFolder defines a custom folder path where the tool is expected to exist and where it should be installed if desired\. Paths will be normalized to the operating system automatically\, so unix\-style paths are recommended\.
 
-### func [WithVersionCmd](<https://github.com/princjef/mageutil/blob/master/bintool/bintool.go#L221>)
+### func [WithVersionCmd](<https://github.com/princjef/mageutil/blob/master/bintool/bintool.go#L240>)
 
 ```go
 func WithVersionCmd(cmd string) Option
 ```
 
-WithVersionCmd defines a custom command used to test the version of the command for purposes of determining if the command is installed\. The provided command is a template that can use any of the template parameters that are available to the url\.
+WithVersionCmd defines a custom command used to test the version of the command for purposes of determining if the command is installed\. The provided command is a template that can use any of the template parameters that are available to the url\. If no command is provided\, the version check will be skipped\.
 
 The default test command is "\{\{\.FullCmd\}\} \-\-version"\.
 

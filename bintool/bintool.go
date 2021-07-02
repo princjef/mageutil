@@ -35,6 +35,7 @@ type (
 		versionCmd string
 		url        string
 		tmplData   templateData
+		goInstall  bool
 	}
 
 	templateData struct {
@@ -69,6 +70,23 @@ func Must(t *BinTool, err error) *BinTool {
 // their formats. If any of these templates fails to compile or evaluate, this
 // call will return an error.
 func New(command, version, url string, opts ...Option) (*BinTool, error) {
+	return new(command, version, url, opts...)
+}
+
+// NewGo initializes a BinTool with the provided go package and version.
+// Additional options may be provided to configure things such as the version
+// test command and folder containing the binary tool.
+func NewGo(pkg, version string, opts ...Option) (*BinTool, error) {
+	cmd := fmt.Sprintf("%s{{.BinExt}}", filepath.Base(pkg))
+	t, err := new(cmd, version, pkg, opts...)
+	if err != nil {
+		return nil, err
+	}
+	t.goInstall = true
+	return t, nil
+}
+
+func new(command, version, url string, opts ...Option) (*BinTool, error) {
 	t := &BinTool{
 		folder:     "./bin",
 		versionCmd: "{{.FullCmd}} --version",
@@ -118,6 +136,13 @@ func New(command, version, url string, opts ...Option) (*BinTool, error) {
 // IsInstalled checks whether the correct version of the tool is currently
 // installed as defined by the version command.
 func (t *BinTool) IsInstalled() bool {
+	if t.versionCmd == "" {
+		return t.checkCommand()
+	}
+	return t.checkVersion()
+}
+
+func (t *BinTool) checkVersion() bool {
 	args := strings.Split(t.versionCmd, " ")
 	out, err := exec.Command(args[0], args[1:]...).Output()
 	if err != nil {
@@ -143,27 +168,21 @@ func (t *BinTool) IsInstalled() bool {
 	}
 }
 
+func (t *BinTool) checkCommand() bool {
+	_, err := os.Stat(t.tmplData.FullCmd)
+	return err == nil
+}
+
 // Install unconditionally downloads and installs the tool to the configured
 // folder.
 //
 // If you don't want to download the tool every time, you may prefer Ensure()
 // instead.
 func (t *BinTool) Install() error {
-	data, err := downloadAndExtract(t.tmplData.Cmd, t.url)
-	if err != nil {
-		return err
+	if t.goInstall {
+		return t.installGo()
 	}
-
-	if err := os.MkdirAll(t.folder, 0755); err != nil {
-		return fmt.Errorf("bintool: unable to create destination folder %s: %w", t.folder, err)
-	}
-
-	p := filepath.Join(t.folder, t.tmplData.Cmd)
-	if err := ioutil.WriteFile(p, data, 0755); err != nil {
-		return fmt.Errorf("bintool: unable to write executable file %s: %w", p, err)
-	}
-
-	return nil
+	return t.installBinary()
 }
 
 // Ensure checks to see if a valid version of the tool is installed, and
@@ -172,7 +191,6 @@ func (t *BinTool) Ensure() error {
 	if t.IsInstalled() {
 		return nil
 	}
-
 	return t.Install()
 }
 
@@ -215,7 +233,8 @@ func WithBinExt(ext string) Option {
 // WithVersionCmd defines a custom command used to test the version of the
 // command for purposes of determining if the command is installed. The provided
 // command is a template that can use any of the template parameters that are
-// available to the url.
+// available to the url. If no command is provided, the version check will be
+// skipped.
 //
 // The default test command is "{{.FullCmd}} --version".
 func WithVersionCmd(cmd string) Option {
@@ -242,6 +261,23 @@ func resolveTemplate(templateString string, tmplData templateData) (string, erro
 
 func isAlphanumeric(b byte) bool {
 	return (b >= 'A' && b <= 'Z') || (b >= 'a' && b <= 'z') || (b >= '0' && b <= '9')
+}
+
+func (t *BinTool) installBinary() error {
+	data, err := downloadAndExtract(t.tmplData.Cmd, t.url)
+	if err != nil {
+		return err
+	}
+
+	if err := os.MkdirAll(t.folder, 0755); err != nil {
+		return fmt.Errorf("bintool: unable to create destination folder %s: %w", t.folder, err)
+	}
+
+	if err := ioutil.WriteFile(t.tmplData.FullCmd, data, 0755); err != nil {
+		return fmt.Errorf("bintool: unable to write executable file %s: %w", t.tmplData.FullCmd, err)
+	}
+
+	return nil
 }
 
 func downloadAndExtract(command string, url string) (data []byte, err error) {
@@ -369,4 +405,23 @@ func extractZipFile(r io.Reader, filename string) (data []byte, err error) {
 	}
 
 	return buf.Bytes(), nil
+}
+
+func (t *BinTool) installGo() error {
+	path, err := filepath.Abs(t.folder)
+	if err != nil {
+		return err
+	}
+
+	if err := os.MkdirAll(t.folder, 0755); err != nil {
+		return fmt.Errorf("bintool: unable to create destination folder %s: %w", t.folder, err)
+	}
+
+	fmt.Printf("Installing %s\n", t.tmplData.Cmd)
+	goInstall := fmt.Sprintf("GOBIN=%s go install %s@%s", path, t.url, t.tmplData.Version)
+	if _, err := shellcmd.Command(goInstall).Output(); err != nil {
+		return fmt.Errorf("bintool: unable to install executable: %w", err)
+	}
+
+	return nil
 }

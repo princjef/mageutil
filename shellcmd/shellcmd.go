@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"strings"
 
 	"github.com/fatih/color"
 )
@@ -15,13 +16,12 @@ type Command string
 // Run executes the command, piping its output to stdout/stderr and reporting
 // any errors surfaced by it.
 func (c Command) Run() error {
-	args, err := new(cmdParser).parse(string(c))
+	cmd, err := c.cmd()
 	if err != nil {
 		return err
 	}
 
 	fmt.Printf("%s %s\n", color.MagentaString(">"), color.New(color.Bold).Sprintf(string(c)))
-	cmd := exec.Command(args[0], args[1:]...)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	return cmd.Run()
@@ -30,12 +30,29 @@ func (c Command) Run() error {
 // Output executes the command, capturing its stdout and stderr into a []byte,
 // which is returned when the command completes.
 func (c Command) Output() ([]byte, error) {
+	cmd, err := c.cmd()
+	if err != nil {
+		return nil, err
+	}
+
+	return cmd.Output()
+}
+
+func (c Command) cmd() (*exec.Cmd, error) {
 	args, err := new(cmdParser).parse(string(c))
 	if err != nil {
 		return nil, err
 	}
 
-	return exec.Command(args[0], args[1:]...).Output()
+	env := os.Environ()
+	for strings.ContainsRune(args[0], '=') {
+		env = append(env, args[0])
+		args = args[1:]
+	}
+
+	cmd := exec.Command(args[0], args[1:]...)
+	cmd.Env = env
+	return cmd, nil
 }
 
 // RunAll executes all of the provided commands in sequence, only executing the

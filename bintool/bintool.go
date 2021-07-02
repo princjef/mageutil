@@ -35,6 +35,7 @@ type (
 		versionCmd string
 		url        string
 		tmplData   templateData
+		goInstall  bool
 	}
 
 	templateData struct {
@@ -149,21 +150,10 @@ func (t *BinTool) IsInstalled() bool {
 // If you don't want to download the tool every time, you may prefer Ensure()
 // instead.
 func (t *BinTool) Install() error {
-	data, err := downloadAndExtract(t.tmplData.Cmd, t.url)
-	if err != nil {
-		return err
+	if t.goInstall {
+		return t.installGo()
 	}
-
-	if err := os.MkdirAll(t.folder, 0755); err != nil {
-		return fmt.Errorf("bintool: unable to create destination folder %s: %w", t.folder, err)
-	}
-
-	p := filepath.Join(t.folder, t.tmplData.Cmd)
-	if err := ioutil.WriteFile(p, data, 0755); err != nil {
-		return fmt.Errorf("bintool: unable to write executable file %s: %w", p, err)
-	}
-
-	return nil
+	return t.installBinary()
 }
 
 // Ensure checks to see if a valid version of the tool is installed, and
@@ -225,6 +215,15 @@ func WithVersionCmd(cmd string) Option {
 	}
 }
 
+// WithGoInstall indicates that the tool should be installed using "go install"
+// instead of by downloading and extracting a pre-built binary.
+func WithGoInstall() Option {
+	return func(t *BinTool) error {
+		t.goInstall = true
+		return nil
+	}
+}
+
 func resolveTemplate(templateString string, tmplData templateData) (string, error) {
 	tmpl, err := template.New("cmd").Parse(templateString)
 	if err != nil {
@@ -242,6 +241,23 @@ func resolveTemplate(templateString string, tmplData templateData) (string, erro
 
 func isAlphanumeric(b byte) bool {
 	return (b >= 'A' && b <= 'Z') || (b >= 'a' && b <= 'z') || (b >= '0' && b <= '9')
+}
+
+func (t *BinTool) installBinary() error {
+	data, err := downloadAndExtract(t.tmplData.Cmd, t.url)
+	if err != nil {
+		return err
+	}
+
+	if err := os.MkdirAll(t.folder, 0755); err != nil {
+		return fmt.Errorf("bintool: unable to create destination folder %s: %w", t.folder, err)
+	}
+
+	if err := ioutil.WriteFile(t.tmplData.FullCmd, data, 0755); err != nil {
+		return fmt.Errorf("bintool: unable to write executable file %s: %w", t.tmplData.FullCmd, err)
+	}
+
+	return nil
 }
 
 func downloadAndExtract(command string, url string) (data []byte, err error) {
@@ -369,4 +385,31 @@ func extractZipFile(r io.Reader, filename string) (data []byte, err error) {
 	}
 
 	return buf.Bytes(), nil
+}
+
+func (t *BinTool) installGo() error {
+	path, err := filepath.Abs(t.folder)
+	if err != nil {
+		return err
+	}
+
+	defCmd := filepath.Base(t.url)
+	if runtime.GOOS == "windows" {
+		defCmd += ".exe"
+	}
+
+	if err := os.MkdirAll(t.folder, 0755); err != nil {
+		return fmt.Errorf("bintool: unable to create destination folder %s: %w", t.folder, err)
+	}
+
+	fmt.Printf("Installing %s\n", t.tmplData.Cmd)
+	if _, err := shellcmd.Command(fmt.Sprintf("GOBIN=%s go install %s@%s", path, t.url, t.tmplData.Version)).Output(); err != nil {
+		return fmt.Errorf("bintool: unable to download executable: %w", err)
+	}
+
+	if err := os.Rename(filepath.Join(path, defCmd), t.tmplData.FullCmd); err != nil {
+		return fmt.Errorf("bintool: unable to rename executable file to %s: %w", t.tmplData.FullCmd, err)
+	}
+
+	return nil
 }

@@ -11,6 +11,13 @@
 //
 //	err := shellcmd.Command(`go test ./...`).Run()
 //
+// To customize the execution of a given command use Option.
+//
+//	err := shellcmd.Command(`go test ./...`).Run(
+//		shellcmd.WithDir("./cmd/cli"),
+//		shellcmd.WithEnv("BINARY_PATH", "./default/bin/path"),
+//	)
+//
 // If you need to run multiple commands in sequence, you can do so with the
 // shellcmd.RunAll() function. This will handle capturing errors in previous
 // commands and skipping execution of later commands if they fail.

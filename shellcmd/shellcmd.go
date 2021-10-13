@@ -15,10 +15,14 @@ type Command string
 
 // Run executes the command, piping its output to stdout/stderr and reporting
 // any errors surfaced by it.
-func (c Command) Run() error {
+func (c Command) Run(opts ...Option) error {
 	cmd, err := c.cmd()
 	if err != nil {
 		return err
+	}
+
+	for _, opt := range opts {
+		opt(cmd)
 	}
 
 	fmt.Printf("%s %s\n", color.MagentaString(">"), color.New(color.Bold).Sprintf(string(c)))

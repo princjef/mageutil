@@ -16,6 +16,15 @@ Once a command has been created\, it can be run using the Run\(\) method\. This 
 err := shellcmd.Command(`go test ./...`).Run()
 ```
 
+To customize the execution of a given command use Option\.
+
+```
+err := shellcmd.Command(`go test ./...`).Run(
+	shellcmd.WithDir("./cmd/cli"),
+	shellcmd.WithEnv("BINARY_PATH", "./default/bin/path"),
+)
+```
+
 If you need to run multiple commands in sequence\, you can do so with the shellcmd\.RunAll\(\) function\. This will handle capturing errors in previous commands and skipping execution of later commands if they fail\.
 
 ```
@@ -36,10 +45,13 @@ out, err := shellcmd.Command(`go test ./...`).Output()
 - [func RunAll(commands ...Command) error](<#func-runall>)
 - [type Command](<#type-command>)
   - [func (c Command) Output() ([]byte, error)](<#func-command-output>)
-  - [func (c Command) Run() error](<#func-command-run>)
+  - [func (c Command) Run(opts ...Option) error](<#func-command-run>)
+- [type Option](<#type-option>)
+  - [func WithDir(dir string) Option](<#func-withdir>)
+  - [func WithEnv(key, def string) Option](<#func-withenv>)
 
 
-## func [RunAll](<https://github.com/princjef/mageutil/blob/master/shellcmd/shellcmd.go#L61>)
+## func [RunAll](<https://github.com/princjef/mageutil/blob/master/shellcmd/shellcmd.go#L65>)
 
 ```go
 func RunAll(commands ...Command) error
@@ -55,7 +67,7 @@ Command defines a command which can be defined and run with output piped to stdo
 type Command string
 ```
 
-### func \(Command\) [Output](<https://github.com/princjef/mageutil/blob/master/shellcmd/shellcmd.go#L32>)
+### func \(Command\) [Output](<https://github.com/princjef/mageutil/blob/master/shellcmd/shellcmd.go#L36>)
 
 ```go
 func (c Command) Output() ([]byte, error)
@@ -66,10 +78,34 @@ Output executes the command\, capturing its stdout and stderr into a \[\]byte\, 
 ### func \(Command\) [Run](<https://github.com/princjef/mageutil/blob/master/shellcmd/shellcmd.go#L18>)
 
 ```go
-func (c Command) Run() error
+func (c Command) Run(opts ...Option) error
 ```
 
 Run executes the command\, piping its output to stdout/stderr and reporting any errors surfaced by it\.
+
+## type [Option](<https://github.com/princjef/mageutil/blob/master/shellcmd/options.go#L10>)
+
+Option are functions that are passed into Run to modify the behaviour of the executed command\.
+
+```go
+type Option func(*exec.Cmd)
+```
+
+### func [WithDir](<https://github.com/princjef/mageutil/blob/master/shellcmd/options.go#L14>)
+
+```go
+func WithDir(dir string) Option
+```
+
+WithDir returns an Option to specify the working directory of the command\. If dir is the empty string\, runs the command in the calling process's current directory\.
+
+### func [WithEnv](<https://github.com/princjef/mageutil/blob/master/shellcmd/options.go#L22>)
+
+```go
+func WithEnv(key, def string) Option
+```
+
+WithEnv returns an Option to specify the environment of the command\. First retrieves the value of the environment variable named by the key\, if not set\, uses the def value\.
 
 
 

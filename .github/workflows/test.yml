@@ -31,7 +31,7 @@ jobs:
           version: latest
           args: docVerify
       - name: Test
-        uses: magefile/mage-action@v3
+        uses: magefile/mage-action@v2
         with:
           version: latest
           args: test

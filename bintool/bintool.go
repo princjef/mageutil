@@ -52,7 +52,7 @@ type (
 	Option func(t *BinTool) error
 )
 
-// Must provides a utility for asserting that methods returning a BinTool and an
+// Must provide a utility for asserting that methods returning a BinTool and an
 // error have no error. If there is an error, this call will panic.
 func Must(t *BinTool, err error) *BinTool {
 	if err != nil {

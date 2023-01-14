@@ -6,11 +6,11 @@
 import "github.com/princjef/mageutil/bintool"
 ```
 
-Package bintool manages local binary tool dependencies in your project\.
+Package bintool manages local binary tool dependencies in your project.
 
-Tools are first defined with bintool\.New\(\)\, which is provided with the tool's executable name\, desired version\, and template URL for downloading it if needed\.
+Tools are first defined with bintool.New\(\), which is provided with the tool's executable name, desired version, and template URL for downloading it if needed.
 
-For example\, this call will configure version 1\.23\.6 of golangci\-lint for use:
+For example, this call will configure version 1.23.6 of golangci\-lint for use:
 
 ```
 linter, err = bintool.New(
@@ -20,7 +20,7 @@ linter, err = bintool.New(
 )
 ```
 
-Since errors are only reported for templating issues\, it's common to wrap the call with bintool\.Must\(\)\, which will panic if an error is returned\, rather than making you handle it:
+Since errors are only reported for templating issues, it's common to wrap the call with bintool.Must\(\), which will panic if an error is returned, rather than making you handle it:
 
 ```
 linter := bintool.Must(bintool.New(
@@ -32,9 +32,9 @@ linter := bintool.Must(bintool.New(
 
 ### Templates
 
-Both the executable name and the download URL are configurable using templates so that they can easily be used cross\-platform and with alternative versions using one set of code\.
+Both the executable name and the download URL are configurable using templates so that they can easily be used cross\-platform and with alternative versions using one set of code.
 
-Wherever a template can be used\, the following variables are available:
+Wherever a template can be used, the following variables are available:
 
 ```
 - GOOS         The value of runtime.GOOS for your installation of go
@@ -62,11 +62,11 @@ Wherever a template can be used\, the following variables are available:
 
 ### Capabilities
 
-Once you've defined your tool\, you can check for its existence with the correct version using IsInstalled\(\)\, install it using Install\(\)\, install it only if it isn't already installed using Ensure\(\)\, or run a command using the resulting binary with Command\("rest of args"\)\. See the individual method docs for more details\.
+Once you've defined your tool, you can check for its existence with the correct version using IsInstalled\(\), install it using Install\(\), install it only if it isn't already installed using Ensure\(\), or run a command using the resulting binary with Command\("rest of args"\). See the individual method docs for more details.
 
 ### Configuration Options
 
-There are a few options to configure the tool at creation time\. All are presented with a top\-level function named "With\<option\>"\. They are provided like this:
+There are a few options to configure the tool at creation time. All are presented with a top\-level function named "With\<option\>". They are provided like this:
 
 ```
 linter := bintool.Must(bintool.New(
@@ -77,11 +77,11 @@ linter := bintool.Must(bintool.New(
 ))
 ```
 
-To provide isolation between projects and ensure that your project has access to the exact version of the tooling you desire\, the installed execuables are placed in a \./bin folder within your project\. This location can be customized using bintool\.WithFolder\(\)\. Paths are normalized for Windows\, so they should be specified as unix\-style paths\.
+To provide isolation between projects and ensure that your project has access to the exact version of the tooling you desire, the installed execuables are placed in a ./bin folder within your project. This location can be customized using bintool.WithFolder\(\). Paths are normalized for Windows, so they should be specified as unix\-style paths.
 
-When determining whether the version of the command is correct\, a command must be run to check the version against the expected one\. This varies from tool to tool\, but is assumed to be \`\{\{\.FullCmd\}\} \-\-version\` by default\. If your tool uses a different version command\, you can customize it using bintool\.WithVersionCmd\(\)\. The provided command is a template accepting all of the parameters defined above\.
+When determining whether the version of the command is correct, a command must be run to check the version against the expected one. This varies from tool to tool, but is assumed to be \`\{\{.FullCmd\}\} \-\-version\` by default. If your tool uses a different version command, you can customize it using bintool.WithVersionCmd\(\). The provided command is a template accepting all of the parameters defined above.
 
-If your archive and/or binary files use different extensions than the default ones provided\, you can customize them for your templates using bintool\.WithArchiveExt\(\) and bintool\.WithBinExt\(\)\, respectively\.
+If your archive and/or binary files use different extensions than the default ones provided, you can customize them for your templates using bintool.WithArchiveExt\(\) and bintool.WithBinExt\(\), respectively.
 
 ## Index
 
@@ -102,9 +102,9 @@ If your archive and/or binary files use different extensions than the default on
 
 ## type [BinTool](<https://github.com/princjef/mageutil/blob/master/bintool/bintool.go#L33-L39>)
 
-BinTool represents a single binary tool/version combination with the information needed to check and/or install the tool if desired\.
+BinTool represents a single binary tool/version combination with the information needed to check and/or install the tool if desired.
 
-The struct provides a set of utilities for checking the existence of a valid version of the command and installing the command in a way that is scoped to the project at hand\, if desired\.
+The struct provides a set of utilities for checking the existence of a valid version of the command and installing the command in a way that is scoped to the project at hand, if desired.
 
 ```go
 type BinTool struct {
@@ -118,7 +118,7 @@ type BinTool struct {
 func Must(t *BinTool, err error) *BinTool
 ```
 
-Must provides a utility for asserting that methods returning a BinTool and an error have no error\. If there is an error\, this call will panic\.
+Must provide a utility for asserting that methods returning a BinTool and an error have no error. If there is an error, this call will panic.
 
 ### func [New](<https://github.com/princjef/mageutil/blob/master/bintool/bintool.go#L72>)
 
@@ -126,9 +126,9 @@ Must provides a utility for asserting that methods returning a BinTool and an er
 func New(command, version, url string, opts ...Option) (*BinTool, error)
 ```
 
-New initializes a BinTool with the provided command\, version\, and download url\. Additional options may be provided to configure things such as the version test command\, file extensions and folder containing the binary tool\.
+New initializes a BinTool with the provided command, version, and download url. Additional options may be provided to configure things such as the version test command, file extensions and folder containing the binary tool.
 
-The command\, url\, and version command may all use text templates to define their formats\. If any of these templates fails to compile or evaluate\, this call will return an error\.
+The command, url, and version command may all use text templates to define their formats. If any of these templates fails to compile or evaluate, this call will return an error.
 
 ### func [NewGo](<https://github.com/princjef/mageutil/blob/master/bintool/bintool.go#L79>)
 
@@ -136,7 +136,7 @@ The command\, url\, and version command may all use text templates to define the
 func NewGo(pkg, version string, opts ...Option) (*BinTool, error)
 ```
 
-NewGo initializes a BinTool with the provided go package and version\. Additional options may be provided to configure things such as the version test command and folder containing the binary tool\.
+NewGo initializes a BinTool with the provided go package and version. Additional options may be provided to configure things such as the version test command and folder containing the binary tool.
 
 ### func \(\*BinTool\) [Command](<https://github.com/princjef/mageutil/blob/master/bintool/bintool.go#L199>)
 
@@ -144,7 +144,7 @@ NewGo initializes a BinTool with the provided go package and version\. Additiona
 func (t *BinTool) Command(args string) shellcmd.Command
 ```
 
-Command generates a runnable command using this binary tool along with the provided args\.
+Command generates a runnable command using this binary tool along with the provided args.
 
 ### func \(\*BinTool\) [Ensure](<https://github.com/princjef/mageutil/blob/master/bintool/bintool.go#L190>)
 
@@ -152,7 +152,7 @@ Command generates a runnable command using this binary tool along with the provi
 func (t *BinTool) Ensure() error
 ```
 
-Ensure checks to see if a valid version of the tool is installed\, and downloads/installs it if it isn't already\.
+Ensure checks to see if a valid version of the tool is installed, and downloads/installs it if it isn't already.
 
 ### func \(\*BinTool\) [Install](<https://github.com/princjef/mageutil/blob/master/bintool/bintool.go#L181>)
 
@@ -160,9 +160,9 @@ Ensure checks to see if a valid version of the tool is installed\, and downloads
 func (t *BinTool) Install() error
 ```
 
-Install unconditionally downloads and installs the tool to the configured folder\.
+Install unconditionally downloads and installs the tool to the configured folder.
 
-If you don't want to download the tool every time\, you may prefer Ensure\(\) instead\.
+If you don't want to download the tool every time, you may prefer Ensure\(\) instead.
 
 ### func \(\*BinTool\) [IsInstalled](<https://github.com/princjef/mageutil/blob/master/bintool/bintool.go#L138>)
 
@@ -170,7 +170,7 @@ If you don't want to download the tool every time\, you may prefer Ensure\(\) in
 func (t *BinTool) IsInstalled() bool
 ```
 
-IsInstalled checks whether the correct version of the tool is currently installed as defined by the version command\.
+IsInstalled checks whether the correct version of the tool is currently installed as defined by the version command.
 
 ## type [Option](<https://github.com/princjef/mageutil/blob/master/bintool/bintool.go#L52>)
 
@@ -186,7 +186,7 @@ type Option func(t *BinTool) error
 func WithArchiveExt(ext string) Option
 ```
 
-WithArchiveExt defines a custom extension to use when identifying an archive via the ArchiveExt template variable\. The default archive extension is \.tar\.gz except for Windows\, where it is \.zip\.
+WithArchiveExt defines a custom extension to use when identifying an archive via the ArchiveExt template variable. The default archive extension is .tar.gz except for Windows, where it is .zip.
 
 ### func [WithBinExt](<https://github.com/princjef/mageutil/blob/master/bintool/bintool.go#L226>)
 
@@ -194,7 +194,7 @@ WithArchiveExt defines a custom extension to use when identifying an archive via
 func WithBinExt(ext string) Option
 ```
 
-WithBinExt defines a custom extension to use when identifying a binary executable via the BinExt template variable\. The default binary extension is empty for all operating systems except Windows\, where it is \.exe\.
+WithBinExt defines a custom extension to use when identifying a binary executable via the BinExt template variable. The default binary extension is empty for all operating systems except Windows, where it is .exe.
 
 ### func [WithFolder](<https://github.com/princjef/mageutil/blob/master/bintool/bintool.go#L206>)
 
@@ -202,7 +202,7 @@ WithBinExt defines a custom extension to use when identifying a binary executabl
 func WithFolder(folder string) Option
 ```
 
-WithFolder defines a custom folder path where the tool is expected to exist and where it should be installed if desired\. Paths will be normalized to the operating system automatically\, so unix\-style paths are recommended\.
+WithFolder defines a custom folder path where the tool is expected to exist and where it should be installed if desired. Paths will be normalized to the operating system automatically, so unix\-style paths are recommended.
 
 ### func [WithVersionCmd](<https://github.com/princjef/mageutil/blob/master/bintool/bintool.go#L240>)
 
@@ -210,9 +210,9 @@ WithFolder defines a custom folder path where the tool is expected to exist and 
 func WithVersionCmd(cmd string) Option
 ```
 
-WithVersionCmd defines a custom command used to test the version of the command for purposes of determining if the command is installed\. The provided command is a template that can use any of the template parameters that are available to the url\. If no command is provided\, the version check will be skipped\.
+WithVersionCmd defines a custom command used to test the version of the command for purposes of determining if the command is installed. The provided command is a template that can use any of the template parameters that are available to the url. If no command is provided, the version check will be skipped.
 
-The default test command is "\{\{\.FullCmd\}\} \-\-version"\.
+The default test command is "\{\{.FullCmd\}\} \-\-version".
 
 
 

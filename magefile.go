@@ -16,7 +16,7 @@ var (
 	))
 	documenter = bintool.Must(bintool.New(
 		"gomarkdoc{{.BinExt}}",
-		"0.2.1",
+		"0.4.1",
 		"https://github.com/princjef/gomarkdoc/releases/download/v{{.Version}}/gomarkdoc_{{.Version}}_{{.GOOS}}_{{.GOARCH}}{{.ArchiveExt}}",
 	))
 )
